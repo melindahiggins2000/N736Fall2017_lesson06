@@ -108,7 +108,9 @@ run;
 proc contents data=dataAcomment; run;
 ```
 
-### adding labels and levels for `factors` in R
+### adding labels and levels for `factors` in `R`
+
+**R Code**
 
 ```{r, engine='R'}
 # reset the engine globally (i.e. so it will work outside of
@@ -167,6 +169,8 @@ is.numeric(dataA$var2)
 ```
 
 ### using `SAS` formats
+
+**SAS Code**
 
 ```{r}
 saspath <- "C:/Program Files/SASHome/SASFoundation/9.4/sas.exe"
@@ -238,6 +242,8 @@ proc freq data=dataB;
 ### tables with labels
 
 Frequency table and plots without `format` applied for `dataA` and again with `format` applied for `dataA2`.
+
+**SAS Code**
 
 ```{r, echo=TRUE, collectcode=TRUE}
 proc freq data=dataA;
