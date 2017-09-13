@@ -1,0 +1,137 @@
+
+
+
+
+Frequency table and plots with `format` applied.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc freq data=dataA2;
+ tables var1/plots=freqplot;
+ run;
+```
+
+
+
+### Other labeling in `SAS` - titles
+
+Here is an example of adding a title to the ODS output.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc freq data=dataB;
+  title "Frequency Table of Gender";
+  format var2 $gender.;
+  tables var2;
+  run;
+```
+
+Notice the title remains in the next output also because the `title` command is a GLOBAL setting that stays in effect until you change it.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc print data=dataB; run;
+```
+
+Set the title back to empty. In general, it is a good idea to ALWAYS have some kind of title with your output to keep track.
+
+```{r, echo=TRUE, collectcode=TRUE}
+title;
+
+proc print data=dataB; run;
+```
+
+You can also use footnotes. You can have up to 3 titles and 3 footnotes.
+
+see more at [http://support.sas.com/documentation/cdl/en/lestmtsref/69738/HTML/default/viewer.htm#p10gcmrmf83iaxn1ilrx4pra969n.htm](http://support.sas.com/documentation/cdl/en/lestmtsref/69738/HTML/default/viewer.htm#p10gcmrmf83iaxn1ilrx4pra969n.htm).
+
+```{r, echo=TRUE, collectcode=TRUE}
+title "Univariate Report for var 1 in dataA2";
+title2 "Report by Melinda Higgins";
+title3 "dated 09/15/2017";
+footnote "this is footnote 1";
+footnote2 "this is footnote 2";
+footnote3 "this is footnote 3";
+
+proc univariate data=dataA2 plots;
+  var var1;
+  histogram var1/normal;
+  run;
+
+* set all back to empty;
+title;
+title2;
+title3;
+footnote;
+footnote2;
+footnote3;
+```
+
+
+
+
+
+
+
+## recoding
+
+**SAS Code**
+
+```{r}
+saspath <- "C:/Program Files/SASHome/SASFoundation/9.4/sas.exe"
+sasopts <- "-nosplash -linesize 75"
+
+knitr::opts_chunk$set(engine="sashtml", engine.path=saspath, 
+        engine.opts=sasopts, comment=NA)
+```
+
+From lesson 5 - merge `dataA` and `dataB` together.
+
+```{r, echo=TRUE, collectcode=TRUE}
+data dataAB;
+  set dataA dataB;
+run;
+
+proc print data=dataAB noobs; run;
+```
+
+Let's recode `var1` into a new variable identifying subjects with `var1` scores <=3 and those >3 (splitting the data at 3). First we'll define the formatting we want for our new variable and after we recode it in the `DATA` step we'll apply the formatting.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc format;
+  value splitYN
+    0 = 'NO var1 <= 3'
+    1 = 'YES var1 > 3';
+run;
+```
+
+Create new dataset with recoded variables and apply new format labels.
+
+```{r, echo=TRUE, collectcode=TRUE}
+data dataAB_new;
+  set dataAB;
+  if var1 > 3 then var1split3 = 1;
+  else             var1split3 = 0;
+  format var1split3 splitYN.;
+run;
+```
+
+Create table and plot of new variable split <=3 and >3.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc freq data=dataAB_new;
+ tables var1split3/plots=freqplot;
+ run;
+```
+
+
+
+
+
+
+## manipulating variable types
+
+
+
+
+
+
+
+sas206c7cs23200.sas -nosplash -linesize 75' had status 2 Execution halted

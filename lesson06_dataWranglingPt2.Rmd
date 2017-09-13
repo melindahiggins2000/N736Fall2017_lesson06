@@ -1,0 +1,163 @@
+---
+title: "Data Wrangling"
+author: "Melinda K. Higgins, PhD."
+date: "September 11, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+```
+
+## Data Wrangling
+
+For today's lesson, you will want to download/make a copy of the Github repository [https://github.com/melindahiggins2000/N736Fall2017_lesson06](https://github.com/melindahiggins2000/N736Fall2017_lesson06). This repo contains 3 datasets we will be working with in the exercises below: 
+
+* `dataA.csv` - has 3 variables (var1, var2, var3) and 6 subjects (1,2,3,5,8,9)
+* `dataB.csv` - has 3 variables: 2 same and 1 different than `dataA` (var1, var2, var4) and 6 more subjects (11,12,14,15,17,18)
+* `dataC.csv` - has 3 more variables (var5, var6, var7) and 6 subjects (1,2,3,4,7,10) some in common with `dataA` and some different
+
+Lesson 05 covered merging; joining; stacking; and concatenating 2 datasets together.
+
+For Lesson 06 we'll cover:
+
+* adding labels and other notations
+* recoding
+* manipulating data types
+
+## Adding Labels and Other Notations
+
+It can sometimes be helpful to add a label to your dataset or to your variables 
+
+
+**R CODE**
+
+
+
+**SAS Code**
+
+```{r}
+library(SASmarkdown)
+
+saspath <- "C:/Program Files/SASHome/SASFoundation/9.4/sas.exe"
+sasopts <- "-nosplash -linesize 75"
+
+knitr::opts_chunk$set(engine="sashtml", engine.path=saspath, 
+        engine.opts=sasopts, comment=NA)
+
+sas_collectcode()
+```
+
+Load `dataA` and `dataB`.
+
+```{r, echo=TRUE, collectcode=TRUE}
+* ======================================;
+* load dataA;
+* ======================================;
+proc import datafile='C:\MyGithub\N736Fall2017_lesson05\dataA.csv'
+  out=dataA dbms=csv;
+run;
+
+* ======================================;
+* load dataB;  
+* ======================================;
+proc import datafile='C:\MyGithub\N736Fall2017_lesson05\dataB.csv'
+  out=dataB dbms=csv;
+run;
+```
+
+Create some formats for likert scale variables and for the gender character variable.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc format;
+  value likert  
+    1='strongly disagree'
+    2='disagree'
+	3='neutral'
+	4='agree'
+	5='strongly agree';
+  value $gender  
+    'm'='male'
+    'f'='female';
+run;
+    
+```
+
+See what it looks like without the format applied.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc print data=dataA; run;
+```
+
+Apply the format to a new dataset `dataA2` for the `var1` variable.
+
+```{r, echo=TRUE, collectcode=TRUE}
+data dataA2;
+  set dataA;
+  format var1 likert.;
+run;
+
+proc print data=dataA2; run;
+```
+
+You don't have to use the format in a `DATA` step, you can simply use it when you need it, such as within a proc print statement to get the formatting you want in the output. Let's use the `format` statement here when we print the data table for `dataB`.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc print data=dataB;
+  format var2 $gender.;
+  run;
+```
+
+We can also use the `format` statement here to print the likert scale labels in a frequency table. First, without formatting and again with the formatting - compare the output.
+
+```{r, echo=TRUE, collectcode=TRUE}
+* run a frequency table without formatting;
+
+proc freq data=dataB;
+  tables var2;
+  run;
+
+* add the formatting for the table;
+
+proc freq data=dataB;
+  format var2 $gender.;
+  tables var2;
+  run;
+```
+
+### plots with labels
+
+Frequency table and plots without `format` applied for `dataA` and again with `format` applied for `dataA2`.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc freq data=dataA;
+ tables var1;
+ run;
+
+proc freq data=dataA2;
+ tables var1;
+ run;
+```
+
+```{r}
+proc means data=sashelp.class;
+run;
+```
+
+
+```{r, echo=TRUE, engine='R'}
+knitr::opts_chunk$get()$engine
+```
+
+
+
+```{r, engine='R'}
+# reset the engine globally (i.e. so it will work outside of
+# this chunk so you don't have to keep typing engine=`R`)
+knitr::opts_chunk$set(engine="R",  engine.path=NULL, 
+        engine.opts=NULL, comment=NA)
+knitr::opts_chunk$get()$engine
+```
+
