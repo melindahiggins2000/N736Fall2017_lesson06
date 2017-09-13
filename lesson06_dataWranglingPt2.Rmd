@@ -19,22 +19,52 @@ For today's lesson, you will want to download/make a copy of the Github reposito
 * `dataB.csv` - has 3 variables: 2 same and 1 different than `dataA` (var1, var2, var4) and 6 more subjects (11,12,14,15,17,18)
 * `dataC.csv` - has 3 more variables (var5, var6, var7) and 6 subjects (1,2,3,4,7,10) some in common with `dataA` and some different
 
-Lesson 05 covered merging; joining; stacking; and concatenating 2 datasets together.
+Lesson 05 covered:
+
+* merging; 
+* joining; 
+* stacking; and 
+* concatenating 2 datasets together.
 
 For Lesson 06 we'll cover:
 
 * adding labels and other notations
 * recoding
+
+In future lessons, we'll also discuss:
+
 * manipulating data types
+* switching from numeric to character and back
+* handling dates and times
+* handling `factors` in `R` specifically - but in SAS (and in SPSS), numeric variables assumed to be continuous are modeled differently than numeric variables treated as "factors" (i.e. ordinal or categorical data represented numerically).
 
 ## Adding Labels and Other Notations
 
-It can sometimes be helpful to add a label to your dataset or to your variables 
+It can sometimes be helpful to add a label to your dataset or to your variables.
 
+In `R` you can add a comment on your dataset which can then be pulled up using the `attributes()` function, which could be used later in a title or other text function.
 
 **R CODE**
 
+```{r, echo=TRUE}
+library(readr)
+library(knitr)
+dataA <- read_csv("dataA.csv")
+dataB <- read_csv("dataB.csv")
 
+comment(dataA) <- "This is a comment on dataset dataA"
+comment(dataB) <- "This is a comment on dataset dataB"
+
+attributes(dataA)
+attributes(dataB)
+```
+
+I could use the result of the `attributes()` function to print out info on `dataA`.
+
+```{r, echo=TRUE}
+print(paste("Here are the details on dataset dataA:",
+            attributes(dataA)$comment))
+```
 
 **SAS Code**
 
@@ -68,6 +98,84 @@ proc import datafile='C:\MyGithub\N736Fall2017_lesson05\dataB.csv'
 run;
 ```
 
+In `SAS` it is possible to add a comment about the dataset, but this only shows up as a note in output like `PROC CONTENTS`.
+
+```{r, echo=TRUE, collectcode=TRUE}
+data dataAcomment (label="This is a comment on dataA");
+  set dataA;
+run;
+
+proc contents data=dataAcomment; run;
+```
+
+### adding labels and levels for `factors` in R
+
+```{r, engine='R'}
+# reset the engine globally (i.e. so it will work outside of
+# this chunk so you don't have to keep typing engine=`R`)
+knitr::opts_chunk$set(engine="R",  engine.path=NULL, 
+        engine.opts=NULL, comment=NA)
+# knitr::opts_chunk$get()$engine
+``` 
+
+For `var` which has 5-point LiKert scale data coded from 1 to 5, let's assume it should have the following labeling and interpretation:
+
+```
+1 = "strongly disagree"
+2 = "disagree"
+3 = "neutral"
+4 = "agree"
+5 = "strongly agree"
+```
+
+Also notice the changes in the "class"/"variable type" when we make `var1` a factor.
+
+```{r, echo=TRUE}
+kable(dataA)
+class(dataA$var1)
+typeof(dataA$var1)
+is.numeric(dataA$var1)
+
+dataA$var1 <- factor(dataA$var1,
+                     levels=c(1,2,3,4,5),
+                     labels=c("strongly disagree",
+                              "disagree", "neutral",
+                              "agree","strongly agree")) 
+
+kable(dataA)
+class(dataA$var1)
+typeof(dataA$var1)
+is.numeric(dataA$var1)
+```
+
+We can also apply better labeling for gender `var2` which is currently a character variable coed as "m" or "f".
+
+```{r, echo=TRUE}
+kable(dataA)
+class(dataA$var2)
+typeof(dataA$var2)
+is.numeric(dataA$var2)
+
+dataA$var2 <- factor(dataA$var2,
+                     levels=c("m","f"),
+                     labels=c("male","female")) 
+
+kable(dataA)
+class(dataA$var2)
+typeof(dataA$var2)
+is.numeric(dataA$var2)
+```
+
+### using `SAS` formats
+
+```{r}
+saspath <- "C:/Program Files/SASHome/SASFoundation/9.4/sas.exe"
+sasopts <- "-nosplash -linesize 75"
+
+knitr::opts_chunk$set(engine="sashtml", engine.path=saspath, 
+        engine.opts=sasopts, comment=NA)
+```
+
 Create some formats for likert scale variables and for the gender character variable.
 
 ```{r, echo=TRUE, collectcode=TRUE}
@@ -75,9 +183,9 @@ proc format;
   value likert  
     1='strongly disagree'
     2='disagree'
-	3='neutral'
-	4='agree'
-	5='strongly agree';
+  	3='neutral'
+	  4='agree'
+	  5='strongly agree';
   value $gender  
     'm'='male'
     'f'='female';
@@ -127,7 +235,7 @@ proc freq data=dataB;
   run;
 ```
 
-### plots with labels
+### tables with labels
 
 Frequency table and plots without `format` applied for `dataA` and again with `format` applied for `dataA2`.
 
@@ -141,17 +249,59 @@ proc freq data=dataA2;
  run;
 ```
 
-```{r}
-proc means data=sashelp.class;
-run;
+### Other labeling in `SAS` - titles
+
+Here is an example of adding a title to the ODS output.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc freq data=dataB;
+  title "Frequency Table of Gender";
+  format var2 $gender.;
+  tables var2;
+  run;
 ```
 
+Notice the title remains in the next output also because the `title` command is a GLOBAL setting that stays in effect until you change it.
 
-```{r, echo=TRUE, engine='R'}
-knitr::opts_chunk$get()$engine
+**NOTE** The changes will show up in the `SAS` output window but are not shown here in this `markdown` based output.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc print data=dataB; run;
 ```
 
+Set the title back to empty. In general, it is a good idea to ALWAYS have some kind of title with your output to keep track.
 
+```{r, echo=TRUE, collectcode=TRUE}
+title;
+
+proc print data=dataB; run;
+```
+
+You can also use footnotes. You can have up to 3 titles and 3 footnotes.
+
+see more at [http://support.sas.com/documentation/cdl/en/lestmtsref/69738/HTML/default/viewer.htm#p10gcmrmf83iaxn1ilrx4pra969n.htm](http://support.sas.com/documentation/cdl/en/lestmtsref/69738/HTML/default/viewer.htm#p10gcmrmf83iaxn1ilrx4pra969n.htm).
+
+```{r, echo=TRUE, collectcode=TRUE}
+title "Univariate Report for var 1 in dataA2";
+title2 "Report by Melinda Higgins";
+title3 "dated 09/15/2017";
+footnote "this is footnote 1";
+footnote2 "this is footnote 2";
+footnote3 "this is footnote 3";
+
+proc univariate data=dataA2 plots;
+  var var1;
+  histogram var1/normal;
+  run;
+
+* set all back to empty;
+title;
+title2;
+title3;
+footnote;
+footnote2;
+footnote3;
+```
 
 ```{r, engine='R'}
 # reset the engine globally (i.e. so it will work outside of
@@ -161,3 +311,88 @@ knitr::opts_chunk$set(engine="R",  engine.path=NULL,
 knitr::opts_chunk$get()$engine
 ```
 
+## Recoding
+
+Suppose we want to recode `var1` into a new variable identifying subjects with `var1` scores <=3 and those >3 (splitting the data at 3). We'll create the new variable and then add the formatting we want using the `factor()` function in `R`.
+
+Since we made `var1` a "factor" type variable above, we have to use the `as.numeric()` function to be able to manipulate the numeric values underlying this variable as a factor.
+
+We also use the `as.numeric()` function again since the statement `x > 3` is a logic statement and returns `FALSE` and `TRUE` and what we want is `0` and `1`. If you do want a logic variable you can leave off this 2nd (outer) `as.numeric()` function.
+
+**R Code**
+
+```{r, echo=TRUE}
+x <- c(1,2,3,4,5)
+x > 3
+typeof(x > 3)
+
+dataA$var1r <- as.numeric(
+  as.numeric(dataA$var1) > 3
+  )
+
+typeof(dataA$var1r)
+
+dataA$var1r <- factor(dataA$var1r,
+                      levels=c(0,1),
+                      labels=c("NO var1 <= 3",
+                               "YES var1 > 3")) 
+
+kable(dataA)
+```
+
+**SAS Code**
+
+```{r}
+saspath <- "C:/Program Files/SASHome/SASFoundation/9.4/sas.exe"
+sasopts <- "-nosplash -linesize 75"
+
+knitr::opts_chunk$set(engine="sashtml", engine.path=saspath, 
+        engine.opts=sasopts, comment=NA)
+```
+
+From lesson 5 - merge `dataA` and `dataB` together.
+
+```{r, echo=TRUE, collectcode=TRUE}
+data dataAB;
+  set dataA dataB;
+run;
+
+proc print data=dataAB noobs; run;
+```
+
+Let's recode `var1` into a new variable identifying subjects with `var1` scores <=3 and those >3 (splitting the data at 3). First we'll define the formatting we want for our new variable and after we recode it in the `DATA` step we'll apply the formatting.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc format;
+  value splitYN
+    0 = 'NO var1 <= 3'
+    1 = 'YES var1 > 3';
+run;
+```
+
+Create new dataset with recoded variables and apply new format labels.
+
+```{r, echo=TRUE, collectcode=TRUE}
+data dataAB_new;
+  set dataAB;
+  if var1 > 3 then var1split3 = 1;
+  else             var1split3 = 0;
+  format var1split3 splitYN.;
+run;
+```
+
+Create table and plot of new variable split <=3 and >3.
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc freq data=dataAB_new;
+ tables var1split3/plots=freqplot;
+ run;
+```
+
+```{r, engine='R'}
+# reset the engine globally (i.e. so it will work outside of
+# this chunk so you don't have to keep typing engine=`R`)
+knitr::opts_chunk$set(engine="R",  engine.path=NULL, 
+        engine.opts=NULL, comment=NA)
+# knitr::opts_chunk$get()$engine
+```
