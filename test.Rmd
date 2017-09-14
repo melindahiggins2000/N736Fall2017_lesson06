@@ -1,0 +1,51 @@
+---
+title: "test"
+author: "Melinda K. Higgins, PhD."
+date: "September 13, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(SASmarkdown)
+
+saspath <- "C:/Program Files/SASHome/SASFoundation/9.4/sas.exe"
+sasopts <- "-nosplash -linesize 75"
+
+knitr::opts_chunk$set(engine="sashtml", engine.path=saspath, 
+        engine.opts=sasopts, comment=NA)
+
+sas_collectcode()
+```
+
+```{r, echo=TRUE, collectcode=TRUE}
+data dat1;
+  input var1;
+  cards;
+  1
+  2
+  2
+  5
+  1
+  2
+  4
+  3
+  ;
+run;
+  
+proc freq data=dat1;
+  tables var1;
+  run;
+```
+
+add some text
+
+```{r, echo=TRUE, collectcode=TRUE}
+proc freq data=dat1;
+  tables var1/plots=freqplot;
+  run;
+```
+
