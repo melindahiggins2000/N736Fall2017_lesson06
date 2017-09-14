@@ -1,5 +1,5 @@
 # ======================================
-# N736 Lesson 06 SAS Code
+# N736 Lesson 06 R Code
 # 09/13/2017
 #
 # Melinda Higgins, PhD
